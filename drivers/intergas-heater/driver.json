@@ -1,4 +1,4 @@
-﻿{
+{
   "id": "intergas-heater",
   "name": {
     "en": "Intergas Heater",
@@ -12,7 +12,6 @@
     "meter_gas_ch",
     "meter_gas_dhw"
   ],
-  "capabilitiesOptions": {},
   "platforms": ["local", "cloud"],
   "connectivity": ["cloud"],
   "images": {
@@ -36,6 +35,10 @@
         "passwordLabel": {
           "en": "Password",
           "nl": "Wachtwoord"
+        },
+        "passwordPlaceholder": {
+          "en": "Your Intergas account password",
+          "nl": "Je Intergas account wachtwoord"
         }
       }
     },
@@ -67,6 +70,35 @@
             "nl": "E-mailadres"
           },
           "value": ""
+        },
+        {
+          "id": "account_id",
+          "type": "text",
+          "label": {
+            "en": "Account ID",
+            "nl": "Account-ID"
+          },
+          "value": ""
+        },
+        {
+          "id": "heater_id",
+          "type": "text",
+          "label": {
+            "en": "Heater ID",
+            "nl": "Ketel-ID"
+          },
+          "value": ""
+        },
+        {
+          "id": "zoneNumber",
+          "type": "number",
+          "label": {
+            "en": "Zone number",
+            "nl": "Zonenummer"
+          },
+          "value": 1,
+          "min": 1,
+          "max": 8
         }
       ]
     }

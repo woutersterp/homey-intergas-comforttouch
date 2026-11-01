@@ -1,99 +1,105 @@
-﻿import { API_BASE_URL, EmailAndPassword, Heater, HeaterStatistics, Token, Zone, ZoneUpdate } from "./types.js";
+import axios, { AxiosInstance } from 'axios';
 
-export class IntergasApi {
-  private token?: string;
+import UnauthorizedError from './errors.js';
+import {
+  API_BASE_URL,
+  EmailAndPassword,
+  Heater,
+  HeaterStatistics,
+  Token,
+  Zone,
+  ZoneUpdate,
+} from './types.js';
+
+export default class IntergasApi {
+  private readonly client: AxiosInstance;
+
+  constructor() {
+    this.client = axios.create({
+      baseURL: API_BASE_URL,
+      timeout: 15000,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  }
 
   setToken(token: string) {
-    this.token = token;
+    this.client.defaults.headers.common.Authorization = `Bearer ${token}`;
   }
 
-  private async request<T>(path: string, options: RequestInit = {}): Promise<T> {
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      ...(options.headers as Record<string, string> || {}),
-    };
-
-    if (this.token) {
-      headers["Authorization"] = `Bearer ${this.token}`;
+  private async request<T>(method: string, url: string, body?: unknown): Promise<T> {
+    try {
+      const response = await this.client.request<T>({
+        method,
+        url,
+        data: body,
+      });
+      return response.data;
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) {
+          throw new UnauthorizedError();
+        }
+        if (err.response) {
+          throw new Error(
+            `Intergas API error ${err.response.status}: ${JSON.stringify(err.response.data)}`,
+          );
+        }
+        throw new Error(`Intergas API request failed: ${err.message}`);
+      }
+      throw err;
     }
-
-    const response = await fetch(`${API_BASE_URL}${path}`, {
-      ...options,
-      headers,
-    });
-
-    if (response.status === 401) {
-      throw new Error("UNAUTHORIZED");
-    }
-
-    if (!response.ok) {
-      const text = await response.text().catch(() => "");
-      throw new Error(`API error ${response.status}: ${text}`);
-    }
-
-    if (response.status === 204) {
-      return undefined as T;
-    }
-
-    return response.json() as Promise<T>;
   }
 
-  async authenticate(emailAndPassword: EmailAndPassword): Promise<Token> {
-    return this.request<Token>("/accounts/authenticate", {
-      method: "POST",
-      body: JSON.stringify(emailAndPassword),
-    });
+  async authenticate(body: EmailAndPassword): Promise<Token> {
+    return this.request<Token>('post', '/accounts/authenticate', body);
   }
 
-  async refresh(token: Token): Promise<Token> {
-    return this.request<Token>("/accounts/refresh", {
-      method: "POST",
-      body: JSON.stringify(token),
-    });
+  async refresh(body: Token): Promise<Token> {
+    return this.request<Token>('post', '/accounts/refresh', body);
   }
 
-  async getAccount(accountId: string): Promise<any> {
-    return this.request<any>(`/accounts/${accountId}`, {
-      method: "GET",
-    });
+  async getAccount(accountId: string): Promise<unknown> {
+    return this.request<unknown>('get', `/accounts/${accountId}`);
   }
 
   async getHeaters(accountId: string): Promise<Heater[]> {
-    return this.request<Heater[]>(`/accounts/${accountId}/heaters`, {
-      method: "GET",
-    });
+    return this.request<Heater[]>('get', `/accounts/${accountId}/heaters`);
   }
 
   async getHeater(accountId: string, heaterId: string): Promise<Heater> {
-    return this.request<Heater>(`/accounts/${accountId}/heaters/${heaterId}`, {
-      method: "GET",
-    });
+    return this.request<Heater>('get', `/accounts/${accountId}/heaters/${heaterId}`);
   }
 
   async getZones(accountId: string, heaterId: string): Promise<Zone[]> {
-    return this.request<Zone[]>(`/accounts/${accountId}/heaters/${heaterId}/zones`, {
-      method: "GET",
-    });
+    return this.request<Zone[]>('get', `/accounts/${accountId}/heaters/${heaterId}/zones`);
   }
 
   async getZone(accountId: string, heaterId: string, zoneNumber: number): Promise<Zone> {
-    return this.request<Zone>(`/accounts/${accountId}/heaters/${heaterId}/zones/${zoneNumber}`, {
-      method: "GET",
-    });
+    return this.request<Zone>(
+      'get',
+      `/accounts/${accountId}/heaters/${heaterId}/zones/${zoneNumber}`,
+    );
   }
 
-  async patchZoneSettings(accountId: string, heaterId: string, zoneNumber: number, zoneUpdate: ZoneUpdate): Promise<Zone> {
-    return this.request<Zone>(`/accounts/${accountId}/heaters/${heaterId}/zones/${zoneNumber}`, {
-      method: "PATCH",
-      body: JSON.stringify(zoneUpdate),
-    });
+  async patchZoneSettings(
+    accountId: string,
+    heaterId: string,
+    zoneNumber: number,
+    body: ZoneUpdate,
+  ): Promise<Zone> {
+    return this.request<Zone>(
+      'patch',
+      `/accounts/${accountId}/heaters/${heaterId}/zones/${zoneNumber}`,
+      body,
+    );
   }
 
   async getHeaterStatistics(accountId: string, heaterId: string): Promise<HeaterStatistics> {
-    return this.request<HeaterStatistics>(`/accounts/${accountId}/heaters/${heaterId}/statistics`, {
-      method: "GET",
-    });
+    return this.request<HeaterStatistics>(
+      'get',
+      `/accounts/${accountId}/heaters/${heaterId}/statistics`,
+    );
   }
 }
-
-export const api = new IntergasApi();

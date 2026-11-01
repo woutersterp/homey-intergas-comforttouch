@@ -1,116 +1,78 @@
-﻿import Homey from 'homey';
-import { api } from '../../lib/api.js';
-import { Zone, ZoneUpdate } from '../../lib/types.js';
+import Homey from 'homey';
+
+import IntergasApi from '../../lib/api.js';
+import { Heater, Token } from '../../lib/types.js';
 
 export default class IntergasHeaterDriver extends Homey.Driver {
   async onInit() {
     this.log('IntergasHeaterDriver has been initialized');
   }
 
-  async onPair(session: any) {
-    let email: string = '';
-    let password: string = '';
-    let accountId: string = '';
-    let tokens: any = null;
+  async onPair(session: Homey.Driver.PairSession) {
+    const api = new IntergasApi();
+    let token: Token | null = null;
+    let accountId = '';
+    let email = '';
+    let password = '';
 
-    session.setHandler('login', async (data: any) => {
+    session.setHandler('login', async (data: { username: string; password: string }) => {
       email = data.username;
       password = data.password;
 
       try {
-        const token = await api.authenticate({ email, password });
-        api.setToken(token.jwt);
-        tokens = token;
+        token = await api.authenticate({ email, password });
         accountId = token.account_id;
-
-        const heaters = await api.getHeaters(accountId);
-        if (!heaters || heaters.length === 0) {
-          throw new Error('No heaters found for this account');
-        }
-
-        const devices = [];
-        for (const heater of heaters) {
-          try {
-            const zones = await api.getZones(accountId, heater.heater_id);
-            const primaryZone = zones && zones.length > 0 ? zones[0] : null;
-            devices.push({
-              name: heater.name || 'Intergas Heater',
-              data: {
-                id: heater.heater_id,
-              },
-              settings: {
-                email,
-                account_id: accountId,
-                heater_id: heater.heater_id,
-                zone_number: primaryZone ? primaryZone.zone_number : 1,
-              },
-              store: {
-                jwt: token.jwt,
-                account_id: accountId,
-                heater_id: heater.heater_id,
-                zone_number: primaryZone ? primaryZone.zone_number : 1,
-              },
-            });
-          } catch (err) {
-            this.error(err);
-            devices.push({
-              name: heater.name || 'Intergas Heater',
-              data: {
-                id: heater.heater_id,
-              },
-              settings: {
-                email,
-                account_id: accountId,
-                heater_id: heater.heater_id,
-                zone_number: 1,
-              },
-              store: {
-                jwt: token.jwt,
-                account_id: accountId,
-                heater_id: heater.heater_id,
-                zone_number: 1,
-              },
-            });
-          }
-        }
-
-        return devices;
-      } catch (err: any) {
-        this.error(err);
-        throw new Error(err.message || 'Login failed');
+        api.setToken(token.jwt);
+        return true;
+      } catch (err) {
+        this.error('Pairing login failed', err);
+        throw new Error('Login failed, please check your e-mail address and password');
       }
     });
 
     session.setHandler('list_devices', async () => {
+      if (!token) throw new Error('Not logged in');
+
       const heaters = await api.getHeaters(accountId);
       const devices = [];
+
       for (const heater of heaters) {
-        try {
-          const zones = await api.getZones(accountId, heater.heater_id);
-          const primaryZone = zones && zones.length > 0 ? zones[0] : null;
-          devices.push({
-            name: heater.name || 'Intergas Heater',
-            data: {
-              id: heater.heater_id,
-            },
-            settings: {
-              email,
-              account_id: accountId,
-              heater_id: heater.heater_id,
-              zone_number: primaryZone ? primaryZone.zone_number : 1,
-            },
-            store: {
-              jwt: tokens?.jwt,
-              account_id: accountId,
-              heater_id: heater.heater_id,
-              zone_number: primaryZone ? primaryZone.zone_number : 1,
-            },
-          });
-        } catch (err) {
-          this.error(err);
-        }
+        const zoneNumber = await this.getPrimaryZoneNumber(api, accountId, heater);
+        devices.push({
+          name: heater.name,
+          data: { id: heater.heater_id },
+          settings: {
+            email,
+            account_id: accountId,
+            heater_id: heater.heater_id,
+            zoneNumber: zoneNumber,
+          },
+          store: {
+            jwt: token.jwt,
+            account_id: accountId,
+            heater_id: heater.heater_id,
+            zoneNumber: zoneNumber,
+            email,
+            password,
+          },
+        });
       }
+
       return devices;
     });
+  }
+
+  private async getPrimaryZoneNumber(
+    api: IntergasApi,
+    accountId: string,
+    heater: Heater,
+  ): Promise<number> {
+    try {
+      const zones = await api.getZones(accountId, heater.heater_id);
+      return zones.length > 0 ? zones[0].zone_number : 1;
+    } catch (err) {
+      this.error(`Failed to fetch zones for heater ${heater.heater_id}`, err);
+      return 1;
+    }
   }
 }

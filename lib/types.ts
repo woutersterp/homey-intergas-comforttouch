@@ -1,4 +1,4 @@
-﻿export const API_BASE_URL = "https://app-api.orion.intergas.nl/v1";
+export const API_BASE_URL = 'https://app-api.orion.intergas.nl/v1';
 
 export interface Token {
   jwt: string;
@@ -9,6 +9,35 @@ export interface Token {
 export interface EmailAndPassword {
   email: string;
   password: string;
+}
+
+export interface State {
+  mode: string;
+  is_heating: boolean;
+  current_lockout_code?: string | null;
+}
+
+export interface Hardware {
+  type: string;
+  serial_number: string;
+  firmware_version: string;
+}
+
+export interface RFPerformance {
+  gateway_rssi: number;
+  heater_rssi: number;
+}
+
+export interface Heater {
+  name: string;
+  heater_id: string;
+  linked_gateway_id?: string | null;
+  last_seen?: string | null;
+  state: State;
+  hardware: Hardware;
+  number_of_zones: number;
+  radio_frequency_performance: RFPerformance;
+  connection_type: string;
 }
 
 export interface Zone {
@@ -22,18 +51,6 @@ export interface Zone {
 export interface ZoneUpdate {
   name: string;
   temperature_heater_setpoint: number;
-}
-
-export interface Heater {
-  name: string;
-  heater_id: string;
-  linked_gateway_id?: string | null;
-  last_seen?: string | null;
-  state: any;
-  hardware: any;
-  number_of_zones: number;
-  radio_frequency_performance: any;
-  connection_type: string;
 }
 
 export interface HeaterStatistics {

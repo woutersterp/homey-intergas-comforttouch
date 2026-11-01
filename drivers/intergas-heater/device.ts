@@ -1,187 +1,173 @@
-﻿import Homey from 'homey';
-import { api } from '../../lib/api.js';
-import { ZoneUpdate } from '../../lib/types.js';
+import Homey from 'homey';
+
+import IntergasApi from '../../lib/api.js';
+import UnauthorizedError from '../../lib/errors.js';
+import { HeaterStatistics, Zone, ZoneUpdate } from '../../lib/types.js';
+
+const POLL_INTERVAL = 60 * 1000;
+const TOKEN_REFRESH_INTERVAL = 30 * 60 * 1000;
+
+interface DeviceStore {
+  jwt?: string;
+  account_id?: string;
+  heater_id?: string;
+  zone_number?: number;
+  email?: string;
+  password?: string;
+}
 
 export default class IntergasHeaterDevice extends Homey.Device {
-  private pollInterval?: NodeJS.Timeout;
+  private readonly api = new IntergasApi();
+
+  private pollTimer?: NodeJS.Timeout;
+
+  private tokenUpdatedAt = 0;
 
   async onInit() {
-    this.log('IntergasHeaterDevice has been initialized');
+    this.log(`Intergas heater "${this.getName()}" has been initialized`);
 
-    // Ensure capabilities exist
-    const requiredCapabilities = [
-      'target_temperature',
-      'measure_temperature',
-      'measure_water_pressure',
-      'meter_gas_ch',
-      'meter_gas_dhw',
-    ];
+    this.registerCapabilityListener('target_temperature', async (value: number) => {
+      await this.setTargetTemperature(value);
+    });
 
-    for (const cap of requiredCapabilities) {
-      if (!this.hasCapability(cap)) {
-        try {
-          await this.addCapability(cap);
-        } catch (err) {
-          this.error(`Failed to add capability ${cap}`, err);
-        }
-      }
-    }
+    await this.syncData().catch((err) => this.error('Initial data sync failed', err));
 
-    // Set capability listeners
-    if (this.hasCapability('target_temperature')) {
-      this.registerCapabilityListener('target_temperature', async (value) => {
-        await this.setTargetTemperature(value);
-      });
-    }
-
-    await this.refreshData();
-    this.pollInterval = setInterval(() => {
-      this.refreshData().catch((err) => this.error(err));
-    }, 60000);
+    this.pollTimer = this.homey.setInterval(() => {
+      this.syncData().catch((err) => this.error('Polling failed', err));
+    }, POLL_INTERVAL);
   }
 
   async onUninit() {
-    if (this.pollInterval) {
-      clearInterval(this.pollInterval);
-    }
+    if (this.pollTimer) this.homey.clearInterval(this.pollTimer);
   }
 
   async onDeleted() {
-    if (this.pollInterval) {
-      clearInterval(this.pollInterval);
+    if (this.pollTimer) this.homey.clearInterval(this.pollTimer);
+  }
+
+  private getDeviceStore(): DeviceStore {
+    return this.getStore() as DeviceStore;
+  }
+
+  private getContext() {
+    const store = this.getDeviceStore();
+    return {
+      accountId: store.account_id ?? '',
+      heaterId: store.heater_id ?? (this.getData() as { id: string }).id,
+      zoneNumber: Number(store.zone_number ?? 1),
+    };
+  }
+
+  private async reauthenticate(): Promise<void> {
+    const { email, password } = this.getDeviceStore();
+    if (!email || !password) {
+      throw new Error('Missing credentials, please re-pair this device');
     }
+
+    const token = await this.api.authenticate({ email, password });
+    await this.setStoreValue('jwt', token.jwt);
+    await this.setStoreValue('account_id', token.account_id);
+    this.api.setToken(token.jwt);
+    this.tokenUpdatedAt = Date.now();
   }
 
-  async onSettings({ oldSettings, newSettings, changedKeys }: any) {
-    // Allow re-saving credentials - they'll be used on next refresh
-    this.log('Settings changed');
-  }
+  private async ensureToken(force = false): Promise<void> {
+    const { jwt, account_id: accountId } = this.getDeviceStore();
+    const stale = Date.now() - this.tokenUpdatedAt > TOKEN_REFRESH_INTERVAL;
 
-  private async getCredentials() {
-    const store = this.getStore();
-    const settings = this.getSettings();
-    let jwt = store.jwt;
-    const accountId = store.account_id || settings.account_id;
-    const heaterId = store.heater_id || this.getData().id;
-    const zoneNumber = store.zone_number || settings.zone_number || 1;
-
-    if (!jwt || !accountId) {
-      throw new Error('Missing credentials');
+    if (jwt && !force && !stale) {
+      this.api.setToken(jwt);
+      return;
     }
 
-    api.setToken(jwt);
-    return { jwt, accountId, heaterId, zoneNumber };
-  }
-
-  private async ensureValidToken(creds: any) {
-    try {
-      // Try to refresh to ensure token is valid
-      const token = await api.refresh({ jwt: creds.jwt, account_id: creds.accountId });
-      api.setToken(token.jwt);
-      this.setStoreValue('jwt', token.jwt);
-      return { ...creds, jwt: token.jwt };
-    } catch (err: any) {
-      if (err.message === 'UNAUTHORIZED') {
-        throw err;
-      }
-      // If refresh fails for other reasons, try with current token
-      api.setToken(creds.jwt);
-      return creds;
-    }
-  }
-
-  private async refreshData() {
-    try {
-      let creds = await this.getCredentials();
+    if (jwt) {
+      this.api.setToken(jwt);
       try {
-        creds = await this.ensureValidToken(creds);
-      } catch (err: any) {
-        if (err.message === 'UNAUTHORIZED') {
-          // Try to re-authenticate using stored email/password if available
-          const settings = this.getSettings();
-          if (settings.email) {
-            // We don't store password, but try with existing token flow
-            throw err;
-          }
-          throw err;
-        }
-        throw err;
-      }
-
-      const [zones, stats] = await Promise.all([
-        api.getZones(creds.accountId, creds.heaterId),
-        api.getHeaterStatistics(creds.accountId, creds.heaterId).catch((e) => {
-          this.error('Failed to get statistics', e);
-          return null;
-        }),
-      ]);
-
-      const zone = zones.find((z: any) => z.zone_number === Number(creds.zoneNumber)) || zones[0];
-      if (zone) {
-        if (this.hasCapability('measure_temperature')) {
-          await this.setCapabilityValue('measure_temperature', zone.temperature_room).catch((e) =>
-            this.error(e)
-          );
-        }
-        if (this.hasCapability('target_temperature')) {
-          await this.setCapabilityValue('target_temperature', zone.temperature_heater_setpoint).catch(
-            (e) => this.error(e)
-          );
-        }
-      }
-
-      if (stats) {
-        if (this.hasCapability('measure_water_pressure')) {
-          const pressure = stats.heating_water_pressure ?? stats.ch_water_pressure;
-          if (pressure !== undefined && pressure !== null) {
-            await this.setCapabilityValue('measure_water_pressure', pressure).catch((e) =>
-              this.error(e)
-            );
-          }
-        }
-        if (this.hasCapability('meter_gas_ch')) {
-          if (stats.ch_gas_consumption !== undefined && stats.ch_gas_consumption !== null) {
-            await this.setCapabilityValue('meter_gas_ch', stats.ch_gas_consumption).catch((e) =>
-              this.error(e)
-            );
-          }
-        }
-        if (this.hasCapability('meter_gas_dhw')) {
-          const dhwGas = stats.dhw_gas_consumption ?? stats.hot_water_gas_consumption;
-          if (dhwGas !== undefined && dhwGas !== null) {
-            await this.setCapabilityValue('meter_gas_dhw', dhwGas).catch((e) => this.error(e));
-          }
-        }
-      }
-    } catch (err: any) {
-      this.error('Failed to refresh data', err);
-      throw err;
-    }
-  }
-
-  private async setTargetTemperature(value: number) {
-    try {
-      let creds = await this.getCredentials();
-      try {
-        creds = await this.ensureValidToken(creds);
+        const refreshed = await this.api.refresh({ jwt, account_id: accountId ?? '' });
+        await this.setStoreValue('jwt', refreshed.jwt);
+        this.api.setToken(refreshed.jwt);
+        this.tokenUpdatedAt = Date.now();
+        return;
       } catch (err) {
-        throw err;
+        this.log('Token refresh failed, falling back to re-authentication', err);
       }
+    }
 
-      const zones = await api.getZones(creds.accountId, creds.heaterId);
-      const zone = zones.find((z: any) => z.zone_number === Number(creds.zoneNumber)) || zones[0];
-      if (!zone) throw new Error('Zone not found');
+    await this.reauthenticate();
+  }
 
-      const update: ZoneUpdate = {
-        name: zone.name,
-        temperature_heater_setpoint: value,
-      };
+  private async withAuth<T>(fn: () => Promise<T>): Promise<T> {
+    await this.ensureToken();
 
-      await api.patchZoneSettings(creds.accountId, creds.heaterId, zone.zone_number, update);
-      await this.refreshData();
-    } catch (err: any) {
-      this.error('Failed to set target temperature', err);
+    try {
+      return await fn();
+    } catch (err) {
+      if (err instanceof UnauthorizedError) {
+        this.log('Received 401, refreshing token and retrying');
+        await this.ensureToken(true);
+        return fn();
+      }
       throw err;
     }
+  }
+
+  private async setCapabilityValueSafe(
+    capabilityId: string,
+    value: number | null | undefined,
+  ): Promise<void> {
+    if (value === null || value === undefined) return;
+    if (!this.hasCapability(capabilityId)) return;
+
+    await this.setCapabilityValue(capabilityId, value).catch((err) => {
+      this.error(`Failed to update ${capabilityId}`, err);
+    });
+  }
+
+  private async syncData(): Promise<void> {
+    const { accountId, heaterId, zoneNumber } = this.getContext();
+
+    const zones = await this.withAuth(() => this.api.getZones(accountId, heaterId));
+    const zone: Zone | undefined = zones.find((candidate) => candidate.zone_number === zoneNumber) ?? zones[0];
+
+    if (zone) {
+      await this.setCapabilityValueSafe('measure_temperature', zone.temperature_room);
+      await this.setCapabilityValueSafe('target_temperature', zone.temperature_heater_setpoint);
+    }
+
+    const stats = await this.withAuth(() => this.api.getHeaterStatistics(accountId, heaterId)).catch((err) => {
+      this.error('Failed to fetch statistics', err);
+      return null as HeaterStatistics | null;
+    });
+
+    if (!stats) return;
+
+    const pressure = stats.heating_water_pressure ?? stats.ch_water_pressure;
+    await this.setCapabilityValueSafe('measure_water_pressure', pressure);
+    await this.setCapabilityValueSafe('meter_gas_ch', stats.ch_gas_consumption);
+    await this.setCapabilityValueSafe(
+      'meter_gas_dhw',
+      stats.dhw_gas_consumption ?? stats.hot_water_gas_consumption,
+    );
+  }
+
+  private async setTargetTemperature(value: number): Promise<void> {
+    const { accountId, heaterId, zoneNumber } = this.getContext();
+
+    const zones = await this.withAuth(() => this.api.getZones(accountId, heaterId));
+    const zone: Zone | undefined = zones.find((candidate) => candidate.zone_number === zoneNumber) ?? zones[0];
+
+    if (!zone) throw new Error('No zone found for this heater');
+
+    const update: ZoneUpdate = {
+      name: zone.name,
+      temperature_heater_setpoint: value,
+    };
+
+    const updatedZone = await this.withAuth(() => this.api.patchZoneSettings(accountId, heaterId, zone.zone_number, update));
+
+    await this.setCapabilityValueSafe(
+      'target_temperature',
+      updatedZone?.temperature_heater_setpoint ?? value,
+    );
   }
 }
