@@ -11,7 +11,7 @@ Recreate Intergas Comfort Touch as a Homey app: cloud-connected heater device wi
   - Statistics: `ch_water_pressure`/`heating_water_pressure`, `ch_gas_consumption`, `hot_water_gas_consumption`/`dhw_gas_consumption`.
 
 ## Implementation Steps
-1. Scaffold Homey app (`homey app create` style): `app.mts`, app manifest, one driver `intergas-heater`, device class `thermostat`.
+1. Create driver `intergas-heater` (class thermostat) under `drivers/`; pairing + device templates. App scaffold already present (`app.ts`, `app.json`).
 2. Add Intergas API client module (fetch/axios) wrapping endpoints: authenticate, refresh, getAccount, getHeaters, getZones, patchZoneSettings, getHeaterStatistics.
 3. Pairing flow: email/password login in pairing view; fetch heaters; create one device per heater (store accountId, heaterId, zoneNumber, tokens).
 4. Device init: load tokens, refresh if expired/near expiry, fetch zones+stats, set capabilities.

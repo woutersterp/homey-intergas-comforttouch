@@ -1,0 +1,11 @@
+﻿{
+  "pair": {
+    "login_credentials": {
+      "title": "Inloggen met je Intergas account",
+      "usernameLabel": "E-mailadres",
+      "passwordLabel": "Wachtwoord",
+      "loginButton": "Inloggen",
+      "loginFailed": "Inloggen mislukt, controleer je gegevens"
+    }
+  }
+}

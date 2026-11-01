@@ -1,0 +1,14 @@
+﻿{
+  "type": "number",
+  "title": {
+    "en": "Water pressure",
+    "nl": "Waterdruk"
+  },
+  "units": {
+    "en": "bar"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/icon.svg"
+}

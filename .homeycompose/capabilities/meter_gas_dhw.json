@@ -1,0 +1,15 @@
+﻿{
+  "type": "number",
+  "title": {
+    "en": "Gas consumption DHW",
+    "nl": "Gasverbruik tapwater"
+  },
+  "units": {
+    "en": "m³"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/icon.svg",
+  "decimals": 3
+}
