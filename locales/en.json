@@ -1,24 +1,11 @@
 {
-  "en": {
-    "pair": {
-      "login_credentials": {
-        "title": "Log in with your Intergas account",
-        "usernameLabel": "E-mail address",
-        "passwordLabel": "Password",
-        "loginButton": "Log in",
-        "loginFailed": "Login failed, please check your credentials"
-      }
-    }
-  },
-  "nl": {
-    "pair": {
-      "login_credentials": {
-        "title": "Inloggen met je Intergas account",
-        "usernameLabel": "E-mailadres",
-        "passwordLabel": "Wachtwoord",
-        "loginButton": "Inloggen",
-        "loginFailed": "Inloggen mislukt, controleer je gegevens"
-      }
+  "pair": {
+    "login_credentials": {
+      "title": "Log in with your Intergas account",
+      "usernameLabel": "E-mail address",
+      "passwordLabel": "Password",
+      "loginButton": "Log in",
+      "loginFailed": "Login failed, please check your credentials"
     }
   }
 }
