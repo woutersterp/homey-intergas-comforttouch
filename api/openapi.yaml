@@ -1,0 +1,2119 @@
+openapi: 3.0.3
+info:
+  title: Intergas API
+  description: |
+    OpenAPI specification generated from decompiled Dart bytecode of the Intergas
+    mobile application. The source code was decompiled from a Flutter APK and is
+    not human-readable source. Types and request body schemas are inferred from
+    model file names, InitAsync/IsType patterns, and serializer registrations.
+  version: 1.0.0
+servers:
+  - url: https://{host}/v1
+    description: Base URL for the Intergas API. Replace {host} with the actual API hostname.
+    variables:
+      host:
+        default: api.example.com
+        description: The API hostname
+
+security:
+  - BearerAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Bearer token (JWT) authentication. Set via `Openapi.setBearerAuth("HTTPBearer", token)`
+        which stores the token internally. The `BearerAuthInterceptor` adds an
+        `Authorization: Bearer <token>` header to all requests that have
+        `secure: true` in their Options. The auth info is keyed under `"HTTPBearer"`.
+
+  schemas:
+    Account:
+      type: object
+      description: Account model (inferred from asm/openapi/src/model/account.dart)
+      properties:
+        country_code:
+          type: string
+          description: ISO country code
+        language_code:
+          type: string
+          description: ISO language code
+        email:
+          type: string
+          format: email
+          description: Account email address
+        account_id:
+          type: string
+          description: Unique account identifier
+        phone_number:
+          type: string
+          description: Phone number
+        address:
+          $ref: '#/components/schemas/Address'
+        full_name:
+          type: string
+          description: Full display name
+        first_name:
+          type: string
+          description: First name
+        last_name:
+          type: string
+          description: Last name
+      required:
+        - country_code
+        - language_code
+        - email
+        - account_id
+    Address:
+      type: object
+      description: Address model (inferred from asm/openapi/src/model/address.dart)
+      properties:
+        house_number:
+          type: string
+          description: House number
+        house_number_addition:
+          type: string
+          nullable: true
+          description: House number addition (e.g. 'A', 'B')
+        city:
+          type: string
+          description: City name
+        county_province:
+          type: string
+          nullable: true
+          description: County or province
+        postal_code:
+          type: string
+          description: Postal code
+        country:
+          type: string
+          description: Country
+      required:
+        - house_number
+        - city
+        - postal_code
+        - country
+    AccountSettings:
+      type: object
+      description: Account settings model (inferred from asm/openapi/src/model/account_settings.dart)
+      properties:
+        temperature_unit:
+          type: string
+          description: Temperature unit, e.g. 'CELSIUS' or 'FAHRENHEIT'
+          enum:
+            - CELSIUS
+            - FAHRENHEIT
+        theme:
+          type: string
+          description: UI theme
+          enum:
+            - LIGHT
+            - DARK
+      required:
+        - temperature_unit
+        - theme
+    AccountSettingsUpdate:
+      type: object
+      description: Account settings update model (inferred from asm/openapi/src/model/account_settings_update.dart)
+      properties:
+        temperature_unit:
+          type: string
+          description: Temperature unit, e.g. 'CELSIUS' or 'FAHRENHEIT'
+          enum:
+            - CELSIUS
+            - FAHRENHEIT
+        theme:
+          type: string
+          description: UI theme
+          enum:
+            - LIGHT
+            - DARK
+    APIParameter:
+      type: object
+      description: Heater API parameter (inferred from asm/openapi/src/model/api_parameter.dart)
+      properties:
+        title:
+          type: string
+          description: Display title of the parameter
+        value:
+          type: string
+          description: Current value
+        range:
+          $ref: '#/components/schemas/ParameterRange'
+        options:
+          type: array
+          description: Available options if applicable
+          items:
+            $ref: '#/components/schemas/ParameterOption'
+        display_code:
+          type: string
+          description: Display code for the parameter
+        description:
+          type: string
+          description: Human-readable description
+        nom_value:
+          type: string
+          description: Nomenclature value
+        unit_or_type:
+          type: string
+          description: Unit or type of the parameter
+        status:
+          type: string
+          description: Status of the parameter
+        error_description:
+          type: string
+          nullable: true
+          description: Error description if applicable
+      required:
+        - title
+        - display_code
+    APIParameterV2:
+      type: object
+      description: Heater API parameter v2 (inferred from asm/openapi/src/model/api_parameter_v2.dart)
+      properties:
+        title:
+          type: string
+          description: Display title of the parameter
+        value:
+          type: string
+          description: Current value
+        min_value:
+          type: number
+          description: Minimum allowed value
+        max_value:
+          type: number
+          description: Maximum allowed value
+        options:
+          type: array
+          description: Available options if applicable
+          items:
+            $ref: '#/components/schemas/ParameterOption'
+        display_code:
+          type: string
+          description: Display code for the parameter
+        description:
+          type: string
+          description: Human-readable description
+        nom_value:
+          type: string
+          description: Nomenclature value
+        unit_or_type:
+          type: string
+          description: Unit or type of the parameter
+        status:
+          type: string
+          description: Status of the parameter
+        error_description:
+          type: string
+          nullable: true
+          description: Error description if applicable
+      required:
+        - title
+        - min_value
+        - max_value
+        - display_code
+    ParameterRange:
+      type: object
+      description: Parameter range bounds (inferred from asm/openapi/src/model/parameter_range.dart)
+      properties:
+        min_value:
+          type: number
+          description: Minimum value
+        max_value:
+          type: number
+          description: Maximum value
+      required:
+        - min_value
+        - max_value
+    ParameterOption:
+      type: object
+      description: Parameter option (inferred from asm/openapi/src/model/parameter_option.dart)
+      properties:
+        value:
+          type: string
+          description: Option value
+        description:
+          type: string
+          description: Option description
+      required:
+        - value
+        - description
+    APIParameterUpdate:
+      type: object
+      description: API parameter update (inferred from asm/openapi/src/model/api_parameter_update.dart)
+      properties:
+        title:
+          type: string
+          description: Display title of the parameter
+        desired_value:
+          type: string
+          description: Desired new value for the parameter
+      required:
+        - title
+        - desired_value
+    CreateAccount:
+      type: object
+      description: Account creation request body (inferred from asm/openapi/src/model/create_account.dart)
+      properties:
+        country_code:
+          type: string
+          description: ISO country code
+        language_code:
+          type: string
+          description: ISO language code
+        email:
+          type: string
+          format: email
+          description: Account email address
+        password:
+          type: string
+          format: password
+          description: Account password
+        address:
+          $ref: '#/components/schemas/CreateAccountAddress'
+      required:
+        - country_code
+        - language_code
+        - email
+        - password
+    CreateAccountAddress:
+      type: object
+      description: Address for account creation (inferred from asm/openapi/src/model/create_account_address.dart)
+      properties:
+        city:
+          type: string
+          description: City name
+        postal_code:
+          type: string
+          description: Postal code
+        country:
+          type: string
+          description: Country
+      required:
+        - city
+        - postal_code
+        - country
+    EmailAndPassword:
+      type: object
+      description: Email and password for authentication (inferred from asm/openapi/src/model/email_and_password.dart)
+      properties:
+        email:
+          type: string
+          format: email
+          description: Account email address
+        password:
+          type: string
+          format: password
+          description: Account password
+      required:
+        - email
+        - password
+    PasswordChange:
+      type: object
+      description: Password change request body (inferred from asm/openapi/src/model/password_change.dart)
+      properties:
+        current_password:
+          type: string
+          format: password
+          description: Current account password
+        new_password:
+          type: string
+          format: password
+          description: New password
+      required:
+        - current_password
+        - new_password
+    Heater:
+      type: object
+      description: Heater model (inferred from asm/openapi/src/model/heater.dart)
+      properties:
+        name:
+          type: string
+          description: User-defined name for the heater
+        heater_id:
+          type: string
+          description: Unique heater identifier
+        linked_gateway_id:
+          type: string
+          nullable: true
+          description: ID of the linked gateway, if any
+        last_seen:
+          type: string
+          format: date-time
+          nullable: true
+          description: Timestamp of last communication with the heater
+        state:
+          $ref: '#/components/schemas/State'
+        hardware:
+          $ref: '#/components/schemas/Hardware'
+        number_of_zones:
+          type: integer
+          description: Number of heating zones
+        radio_frequency_performance:
+          $ref: '#/components/schemas/RFPerformance'
+        connection_type:
+          type: string
+          description: Type of connection (e.g. 'WIFI', 'ETHERNET')
+      required:
+        - name
+        - heater_id
+        - state
+        - hardware
+        - number_of_zones
+        - radio_frequency_performance
+        - connection_type
+    State:
+      type: object
+      description: Heater state (inferred from asm/openapi/src/model/state.dart)
+      properties:
+        mode:
+          type: string
+          description: Operating mode (e.g. 'HEATING', 'COOLING')
+        is_heating:
+          type: boolean
+          description: Whether the heater is currently heating
+        current_lockout_code:
+          type: string
+          nullable: true
+          description: Current lockout code if in error state
+      required:
+        - mode
+        - is_heating
+    Hardware:
+      type: object
+      description: Hardware information (inferred from asm/openapi/src/model/hardware.dart)
+      properties:
+        type:
+          type: string
+          description: Hardware type
+        serial_number:
+          type: string
+          description: Device serial number
+        firmware_version:
+          type: string
+          description: Firmware version
+      required:
+        - type
+        - serial_number
+        - firmware_version
+    RFPerformance:
+      type: object
+      description: Radio frequency performance metrics (inferred from asm/openapi/src/model/rf_performance.dart)
+      properties:
+        gateway_rssi:
+          type: number
+          description: Gateway RSSI (signal strength)
+        heater_rssi:
+          type: number
+          description: Heater RSSI (signal strength)
+      required:
+        - gateway_rssi
+        - heater_rssi
+    HeaterSettings:
+      type: object
+      description: Heater settings update (inferred from asm/openapi/src/model/heater_settings.dart)
+      properties:
+        name:
+          type: string
+          description: User-defined name for the heater
+      required:
+        - name
+    HeaterSerialUpdate:
+      type: object
+      description: Heater serial number update (inferred from asm/openapi/src/model/heater_serial_update.dart)
+      properties:
+        serial_number:
+          type: string
+          description: New serial number
+      required:
+        - serial_number
+    HeaterStatistics:
+      type: object
+      description: Heater statistics (inferred from asm/openapi/src/model/heater_statistics.dart)
+      properties:
+        heater_id:
+          type: string
+          description: Unique heater identifier
+        heating_water_pressure:
+          type: number
+          description: Heating water pressure (bar)
+        heating_hours:
+          type: number
+          description: Total heating hours
+        hot_water_hours:
+          type: number
+          description: Total hot water hours
+        heating_gas_consumption:
+          type: number
+          description: Heating gas consumption (m³)
+        hot_water_gas_consumption:
+          type: number
+          description: Hot water gas consumption (m³)
+        ch_water_pressure:
+          type: number
+          description: Central heating water pressure (bar)
+        device_poweron_hours:
+          type: number
+          description: Total device power-on hours
+        ch_gas_consumption:
+          type: number
+          description: Central heating gas consumption (m³)
+        ch_gas_operational_hours:
+          type: number
+          description: Central heating gas operational hours
+        ch_electricity_consumption:
+          type: number
+          description: Central heating electricity consumption (kWh)
+        ch_electric_operational_hours:
+          type: number
+          description: Central heating electricity operational hours
+        ch_thermal_energy:
+          type: number
+          description: Central heating thermal energy (kWh)
+        cooling_electricity_consumption:
+          type: number
+          description: Cooling electricity consumption (kWh)
+        cooling_electric_operational_hours:
+          type: number
+          description: Cooling electricity operational hours
+        cooling_thermal_energy:
+          type: number
+          description: Cooling thermal energy (kWh)
+        cooling_electric_energy_consumption_yesterday:
+          type: number
+          description: Cooling electricity consumption yesterday (kWh)
+        cooling_thermal_energy_yesterday:
+          type: number
+          description: Cooling thermal energy yesterday (kWh)
+        cooling_cop_yesterday:
+          type: number
+          description: Cooling COP yesterday
+        dhw_gas_consumption:
+          type: number
+          description: DHW gas consumption (m³)
+        dhw_gas_operational_hours:
+          type: number
+          description: DHW gas operational hours
+        dhw_electricity_consumption:
+          type: number
+          description: DHW electricity consumption (kWh)
+        dhw_electric_operational_hours:
+          type: number
+          description: DHW electricity operational hours
+        dhw_thermal_energy:
+          type: number
+          description: DHW thermal energy (kWh)
+        ch_electric_energy_consumption_yesterday:
+          type: number
+          description: Central heating electricity consumption yesterday (kWh)
+        ch_thermal_energy_yesterday:
+          type: number
+          description: Central heating thermal energy yesterday (kWh)
+        ch_cop_yesterday:
+          type: number
+          description: Central heating COP yesterday
+        dhw_electric_energy_consumption_yesterday:
+          type: number
+          description: DHW electricity consumption yesterday (kWh)
+        dhw_thermal_energy_yesterday:
+          type: number
+          description: DHW thermal energy yesterday (kWh)
+        dhw_cop_yesterday:
+          type: number
+          description: DHW COP yesterday
+      required:
+        - heater_id
+    DHWTankStatus:
+      type: object
+      description: DHW buffer tank status (inferred from asm/openapi/src/model/dhw_tank_status.dart)
+      properties:
+        heater_id:
+          type: string
+          description: Unique heater identifier
+        xstore_state:
+          type: string
+          description: XStore state of the tank
+        actual_temperature:
+          type: number
+          description: Current tank temperature (C)
+        target_temperature:
+          type: number
+          description: Target tank temperature (C)
+        volume:
+          type: number
+          description: Current water volume in tank
+        state_of_charge:
+          type: number
+          description: State of charge percentage
+      required:
+        - heater_id
+        - actual_temperature
+        - target_temperature
+        - volume
+        - state_of_charge
+    Zone:
+      type: object
+      description: Zone model (inferred from asm/openapi/src/model/zone.dart)
+      properties:
+        name:
+          type: string
+          description: Zone name
+        temperature_heater_setpoint:
+          type: number
+          description: Current heater setpoint temperature (C)
+        zone_number:
+          type: integer
+          description: Zone number
+        temperature_room:
+          type: number
+          description: Current room temperature (C)
+        thermostat_type:
+          type: string
+          description: Thermostat type
+      required:
+        - name
+        - temperature_heater_setpoint
+        - zone_number
+        - temperature_room
+        - thermostat_type
+    ZoneUpdate:
+      type: object
+      description: Zone settings update (inferred from asm/openapi/src/model/zone_update.dart)
+      properties:
+        name:
+          type: string
+          description: Zone name
+        temperature_heater_setpoint:
+          type: number
+          description: Target heater setpoint temperature (C)
+      required:
+        - name
+        - temperature_heater_setpoint
+    WeekScheme:
+      type: object
+      description: Week schedule scheme (inferred from asm/openapi/src/model/week_scheme.dart)
+      properties:
+        schedule_enabled:
+          type: boolean
+          description: Whether the week schedule is enabled
+        adaptive_schedule_enabled:
+          type: boolean
+          description: Whether adaptive scheduling is enabled
+        timetable:
+          $ref: '#/components/schemas/TimeTable'
+        adaptive_time:
+          type: string
+          nullable: true
+          description: Adaptive time configuration string
+      required:
+        - schedule_enabled
+        - adaptive_schedule_enabled
+    WeekSchemeSettings:
+      type: object
+      description: Week scheme settings update (inferred from asm/openapi/src/model/week_scheme_settings.dart)
+      properties:
+        schedule_enabled:
+          type: boolean
+          description: Whether the week schedule is enabled
+        adaptive_schedule_enabled:
+          type: boolean
+          description: Whether adaptive scheduling is enabled
+        timetable:
+          $ref: '#/components/schemas/TimeTable'
+      required:
+        - schedule_enabled
+        - adaptive_schedule_enabled
+    TimeTable:
+      type: object
+      description: Weekly timetable (inferred from asm/openapi/src/model/time_table.dart)
+      properties:
+        monday:
+          type: array
+          description: Monday schedule items
+          items:
+            $ref: '#/components/schemas/TimeTableItem'
+        tuesday:
+          type: array
+          description: Tuesday schedule items
+          items:
+            $ref: '#/components/schemas/TimeTableItem'
+        wednesday:
+          type: array
+          description: Wednesday schedule items
+          items:
+            $ref: '#/components/schemas/TimeTableItem'
+        thursday:
+          type: array
+          description: Thursday schedule items
+          items:
+            $ref: '#/components/schemas/TimeTableItem'
+        friday:
+          type: array
+          description: Friday schedule items
+          items:
+            $ref: '#/components/schemas/TimeTableItem'
+        saturday:
+          type: array
+          description: Saturday schedule items
+          items:
+            $ref: '#/components/schemas/TimeTableItem'
+        sunday:
+          type: array
+          description: Sunday schedule items
+          items:
+            $ref: '#/components/schemas/TimeTableItem'
+    TimeTableItem:
+      type: object
+      description: Time table entry (inferred from asm/openapi/src/model/time_table_item.dart)
+      properties:
+        time:
+          type: string
+          description: Time for this schedule entry
+        linked_preset_id:
+          type: string
+          nullable: true
+          description: ID of the preset linked to this entry
+      required:
+        - time
+    Preset:
+      type: object
+      description: Temperature preset (inferred from asm/openapi/src/model/preset.dart)
+      properties:
+        name:
+          type: string
+          description: Preset name
+        temperature:
+          type: number
+          description: Temperature (C)
+        color:
+          type: string
+          description: Color code for the preset
+        type:
+          type: string
+          description: Preset type
+        preset_id:
+          type: string
+          description: Unique preset identifier
+      required:
+        - name
+        - temperature
+        - color
+        - type
+    PresetCreate:
+      type: object
+      description: Preset creation request body (inferred from asm/openapi/src/model/preset_create.dart)
+      properties:
+        name:
+          type: string
+          description: Preset name
+        temperature:
+          type: number
+          description: Temperature (C)
+        color:
+          type: string
+          description: Color code for the preset
+        type:
+          type: string
+          description: Preset type
+      required:
+        - name
+        - temperature
+        - color
+        - type
+    PresetEdit:
+      type: object
+      description: Preset edit request body (inferred from asm/openapi/src/model/preset_edit.dart)
+      properties:
+        name:
+          type: string
+          description: Preset name
+        temperature:
+          type: number
+          description: Temperature (C)
+        color:
+          type: string
+          description: Color code for the preset
+      required:
+        - name
+        - temperature
+        - color
+    Gateway:
+      type: object
+      description: Gateway model (inferred from asm/openapi/src/model/gateway.dart)
+      properties:
+        gateway_id:
+          type: string
+          description: Unique gateway identifier
+        mac:
+          type: string
+          description: MAC address
+        ip_address_local:
+          type: string
+          description: Local IP address
+        firmware_version:
+          type: string
+          description: Firmware version
+        time_zone:
+          type: string
+          description: Time zone
+        last_seen:
+          type: string
+          format: date-time
+          description: Timestamp of last communication
+        connection_state:
+          type: string
+          description: Connection state (e.g. 'CONNECTED', 'DISCONNECTED')
+      required:
+        - gateway_id
+        - mac
+        - firmware_version
+        - connection_state
+    GatewayPairingStatus:
+      type: object
+      description: Gateway pairing status (inferred from asm/openapi/src/model/gateway_pairing_status.dart)
+      properties:
+        status:
+          type: string
+          description: Pairing status
+        error:
+          type: string
+          nullable: true
+          description: Error message if pairing failed
+        heater_id:
+          type: string
+          description: Heater identifier
+        serial_number:
+          type: string
+          description: Heater serial number
+        node_number:
+          type: integer
+          description: Node number
+      required:
+        - status
+    GatewayDataMatrix:
+      type: object
+      description: Gateway data matrix for pairing (inferred from asm/openapi/src/model/gateway_data_matrix.dart)
+      properties:
+        mac:
+          type: string
+          description: MAC address of the gateway
+        check_code:
+          type: string
+          description: Check code for verification
+      required:
+        - mac
+    GatewayQRBarcode:
+      type: object
+      description: Gateway QR barcode for MQTT pairing (inferred from asm/openapi/src/model/gateway_qr_barcode.dart)
+      properties:
+        qr_code_string:
+          type: string
+          description: QR code string for MQTT pairing
+      required:
+        - qr_code_string
+    WifiPairingData:
+      type: object
+      description: WiFi pairing data (inferred from asm/openapi/src/model/wifi_pairing_data.dart)
+      properties:
+        qr_code:
+          type: string
+          description: QR code string for WiFi pairing
+      required:
+        - qr_code
+    WifiPairResult:
+      type: object
+      description: WiFi pairing result (inferred from asm/openapi/src/model/wifi_pair_result.dart)
+      properties:
+        message:
+          type: string
+          description: Pairing result message
+        status_url:
+          type: string
+          description: URL to poll for pairing status
+      required:
+        - message
+    PairAddResult:
+      type: object
+      description: Pairing add result (inferred from asm/openapi/src/model/pair_add_result.dart)
+      properties:
+        status_url:
+          type: string
+          description: URL to poll for pairing status
+      required:
+        - status_url
+    Token:
+      type: object
+      description: Authentication token (inferred from asm/openapi/src/model/token.dart)
+      properties:
+        jwt:
+          type: string
+          description: JSON Web Token
+        account_id:
+          type: string
+          description: Account identifier
+        role:
+          type: string
+          description: User role (e.g. 'user', 'installer')
+      required:
+        - jwt
+        - account_id
+    PlatformCheck:
+      type: object
+      description: Platform check request/response (inferred from asm/openapi/src/model/platform_check.dart)
+      properties:
+        platform:
+          type: string
+          description: Platform identifier (e.g. 'android', 'ios')
+      required:
+        - platform
+    InstallerDeviceAssociation:
+      type: object
+      description: Installer device association (inferred from asm/openapi/src/model/installer_device_association.dart)
+      properties:
+        installer_group:
+          $ref: '#/components/schemas/InstallerGroup'
+        device_id:
+          type: string
+          description: Device identifier
+        association_state:
+          $ref: '#/components/schemas/AssociationState'
+        connection_code:
+          type: string
+          nullable: true
+          description: Connection code for pairing
+      required:
+        - installer_group
+        - device_id
+        - association_state
+    InstallerGroup:
+      type: object
+      description: Installer group (inferred from asm/openapi/src/model/installer_group.dart)
+      properties:
+        name:
+          type: string
+          description: Group name
+        website:
+          type: string
+          description: Website URL
+        email:
+          type: string
+          description: Contact email
+        telephone:
+          type: string
+          description: Telephone number
+        address:
+          $ref: '#/components/schemas/Address'
+        coc_number:
+          type: string
+          description: Chamber of Commerce number
+      required:
+        - name
+    AssociationState:
+      type: object
+      description: Association state (inferred from asm/openapi/src/model/association_state.dart)
+      properties:
+        state_name:
+          type: string
+          description: State name (e.g. 'PENDING', 'ACCEPTED', 'REJECTED')
+        state_change_time:
+          type: string
+          format: date-time
+          nullable: true
+          description: Timestamp of last state change
+      required:
+        - state_name
+    Weather:
+      type: object
+      description: Weather data (inferred from asm/openapi/src/model/weather.dart)
+      properties:
+        conditions:
+          type: string
+          description: Weather conditions (e.g. 'SUNNY', 'RAINY')
+        nighttime:
+          type: boolean
+          description: Whether it is nighttime
+        temperature:
+          type: number
+          description: Current temperature (C)
+      required:
+        - conditions
+        - nighttime
+        - temperature
+    BetaFeature:
+      type: string
+      description: Beta feature enum (inferred from asm/openapi/src/model/beta_feature.dart)
+      enum:
+        - WIFI_INSTALLER_ASSOCIATIONS
+    Capability:
+      type: string
+      description: Heater capability enum (inferred from asm/openapi/src/model/capability.dart)
+      enum:
+        - WEEK_SCHEME
+        - DHW_BUFFER_TANK
+        - PARAMETERS
+        - MEDIC
+    JsonObject:
+      type: object
+      description: Generic JSON object returned by endpoints with no specific response body
+      additionalProperties: true
+    ValidationError:
+      type: object
+      description: Validation error response (inferred from asm/openapi/src/model/validation_error.dart)
+      properties:
+        loc:
+          type: array
+          description: Location of the validation error
+          items:
+            type: string
+        msg:
+          type: string
+          description: Error message
+        type:
+          type: string
+          description: Error type
+      required:
+        - loc
+        - msg
+        - type
+    HTTPValidationError:
+      type: object
+      description: HTTP validation error (inferred from asm/openapi/src/model/http_validation_error.dart)
+      properties:
+        detail:
+          type: array
+          description: List of validation errors
+          items:
+            $ref: '#/components/schemas/ValidationError'
+    FrontendError:
+      type: string
+      description: Frontend error enum (inferred from asm/openapi/src/model/frontend_error.dart)
+      enum:
+        - GATEWAY_OFFLINE
+        - PAIR_TIMEOUT
+        - DATA_RECEIVE_TIMEOUT
+        - MAX_NUMBER_HEATERS_EXCEEDED
+        - PAIR_ACTION_ABORTED
+        - BACKEND_ERROR
+
+paths:
+  /accounts:
+    post:
+      summary: Register account
+      description: Creates a new account. POST /v1/accounts
+      operationId: registerAccount
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccount'
+      responses:
+        '200':
+          description: Successful registration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+
+  /accounts/refresh:
+    post:
+      summary: Refresh authentication token
+      description: Refreshes the current JWT token. POST /v1/accounts/refresh
+      operationId: refreshAuthenticationToken
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Token'
+      responses:
+        '200':
+          description: New token returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '401':
+          description: Unauthorized
+
+  /accounts/platform_check:
+    post:
+      summary: Check user platform
+      description: Checks platform compatibility. POST /v1/accounts/platform_check
+      operationId: checkUserPlatform
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlatformCheck'
+      responses:
+        '200':
+          description: Platform check result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformCheck'
+        '400':
+          description: Invalid platform data
+
+  /accounts/authenticate:
+    post:
+      summary: Authenticate account
+      description: Authenticates with email and password. POST /v1/accounts/authenticate
+      operationId: authenticateAccount
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailAndPassword'
+      responses:
+        '200':
+          description: Authentication successful, returns token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '401':
+          description: Invalid credentials
+
+  /accounts/{account_id}:
+    get:
+      summary: Get account
+      description: Retrieves account details. GET /v1/accounts/{account_id}
+      operationId: getAccount
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Account details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '404':
+          description: Account not found
+    put:
+      summary: Update account
+      description: Updates account details. PUT /v1/accounts/{account_id}
+      operationId: updateAccount
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+      responses:
+        '200':
+          description: Account updated successfully
+        '400':
+          description: Invalid account data
+        '404':
+          description: Account not found
+    delete:
+      summary: Delete account
+      description: Deletes an account. DELETE /v1/accounts/{account_id}
+      operationId: deleteAccount
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Account deleted successfully
+
+  /accounts/{account_id}/password_change:
+    put:
+      summary: Change account password
+      description: Changes the password for an account. PUT /v1/accounts/{account_id}/password_change
+      operationId: passwordChangeAccount
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordChange'
+      responses:
+        '200':
+          description: Password changed successfully
+        '400':
+          description: Invalid password data
+        '401':
+          description: Unauthorized
+
+  /accounts/{account_id}/settings:
+    get:
+      summary: Get account settings
+      description: Retrieves account settings. GET /v1/accounts/{account_id}/settings
+      operationId: getAccountSettings
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Account settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountSettings'
+        '404':
+          description: Not found
+    patch:
+      summary: Update account settings
+      description: Updates account settings. PATCH /v1/accounts/{account_id}/settings
+      operationId: patchAccountSettings
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountSettingsUpdate'
+      responses:
+        '200':
+          description: Settings updated successfully
+        '400':
+          description: Invalid settings data
+        '404':
+          description: Not found
+
+  /accounts/{account_id}/beta-features:
+    get:
+      summary: Get beta features
+      description: Retrieves available beta features for the account. GET /v1/accounts/{account_id}/beta-features
+      operationId: getBetaFeatures
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of beta features
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BetaFeature'
+
+  /accounts/{account_id}/eula:
+    get:
+      summary: Get user accepted EULA
+      description: Retrieves the EULA accepted by the user. GET /v1/accounts/{account_id}/eula
+      operationId: getUserAcceptedEula
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: EULA agreement
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Eula'
+        '404':
+          description: No EULA found
+
+  /accounts/{account_id}/eula/{eula_id}/accept:
+    put:
+      summary: Accept EULA
+      description: Accepts an EULA. PUT /v1/accounts/{account_id}/eula/{eula_id}/accept
+      operationId: acceptEula
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: eula_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: EULA accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonObject'
+
+  /accounts/{account_id}/heaters:
+    get:
+      summary: Get all heaters
+      description: Retrieves all heaters for an account. GET /v1/accounts/{account_id}/heaters
+      operationId: getHeaters
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of heaters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Heater'
+
+  /accounts/{account_id}/heaters/pair-using-wifi-qr-code:
+    post:
+      summary: Pair heater using WiFi QR code
+      description: Pairs a heater using WiFi QR code data. POST /v1/accounts/{account_id}/heaters/pair-using-wifi-qr-code
+      operationId: pairHeaterUsingWifiQRCode
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WifiPairingData'
+      responses:
+        '200':
+          description: Pairing result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WifiPairResult'
+
+  /accounts/{account_id}/heaters/pair-using-gateway-data-matrix:
+    post:
+      summary: Pair heater using gateway data matrix
+      description: Pairs a heater using a gateway data matrix. POST /v1/accounts/{account_id}/heaters/pair-using-gateway-data-matrix
+      operationId: pairHeaterUsingGatewayDataMatrix
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GatewayDataMatrix'
+      responses:
+        '200':
+          description: Pairing result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PairAddResult'
+
+  /accounts/{account_id}/heaters/pair-using-mqtt-gateway-barcode:
+    post:
+      summary: Pair heater using MQTT gateway barcode
+      description: Pairs a heater using an MQTT gateway barcode. POST /v1/accounts/{account_id}/heaters/pair-using-mqtt-gateway-barcode
+      operationId: pairHeaterUsingMQTTGatewayBarcode
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GatewayQRBarcode'
+      responses:
+        '200':
+          description: Pairing result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PairAddResult'
+
+  /accounts/{account_id}/heaters/{heater_id}:
+    get:
+      summary: Get heater
+      description: Retrieves a specific heater. GET /v1/accounts/{account_id}/heaters/{heater_id}
+      operationId: getHeater
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: heater_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Heater details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Heater'
+        '404':
+          description: Heater not found
+    patch:
+      summary: Update heater settings
+      description: Patches heater settings. PATCH /v1/accounts/{account_id}/heaters/{heater_id}
+      operationId: patchHeaterSettings
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: heater_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HeaterSettings'
+      responses:
+        '200':
+          description: Heater settings updated
+    delete:
+      summary: Delete heater
+      description: Deletes a heater. DELETE /v1/accounts/{account_id}/heaters/{heater_id}
+      operationId: deleteHeater
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: heater_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Heater deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonObject'
+
+  /accounts/{account_id}/heaters/{heater_id}/dhw-buffer-tank:
+    get:
+      summary: Get DHW tank status
+      description: Retrieves the DHW (Domestic Hot Water) buffer tank status. GET /v1/accounts/{account_id}/heaters/{heater_id}/dhw-buffer-tank
+      operationId: getDHWTankStatus
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: heater_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: DHW tank status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DHWTankStatus'
+
+  /accounts/{account_id}/heaters/{heater_id}/capabilities:
+    get:
+      summary: Get heater capabilities
+      description: Retrieves heater capabilities. GET /v1/accounts/{account_id}/heaters/{heater_id}/capabilities
+      operationId: getHeaterCapabilities
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: heater_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of heater capabilities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Capability'
+
+  /accounts/{account_id}/heaters/{heater_id}/statistics:
+    get:
+      summary: Get heater statistics
+      description: Retrieves heater statistics. GET /v1/accounts/{account_id}/heaters/{heater_id}/statistics
+      operationId: getHeaterStatistics
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: heater_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Heater statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HeaterStatistics'
+
+  /accounts/{account_id}/heaters/{heater_id}/parameters:
+    get:
+      summary: Get heater parameters
+      description: Retrieves heater parameters. GET /v1/accounts/{account_id}/heaters/{heater_id}/parameters
+      operationId: getHeaterParameters
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: heater_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of heater parameters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/APIParameter'
+    patch:
+      summary: Update heater parameters
+      description: Patches heater parameters. PATCH /v1/accounts/{account_id}/heaters/{heater_id}/parameters
+      operationId: patchHeaterParameters
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: heater_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/APIParameterUpdate'
+      responses:
+        '200':
+          description: Parameters updated successfully
+
+  /accounts/{account_id}/heaters/{heater_id}/presets:
+    get:
+      summary: Get all temperature presets
+      description: Retrieves all temperature presets for a heater. GET /v1/accounts/{account_id}/heaters/{heater_id}/presets
+      operationId: getAllTemperaturePresets
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: heater_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of temperature presets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Preset'
+    post:
+      summary: Create temperature preset
+      description: Creates a new temperature preset. POST /v1/accounts/{account_id}/heaters/{heater_id}/presets
+      operationId: createTemperaturePreset
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: heater_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PresetCreate'
+      responses:
+        '200':
+          description: Created preset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Preset'
+
+  /accounts/{account_id}/heaters/{heater_id}/presets/{preset_id}:
+    patch:
+      summary: Update temperature preset
+      description: Updates a temperature preset. PATCH /v1/accounts/{account_id}/heaters/{heater_id}/presets/{preset_id}
+      operationId: updateTemperaturePreset
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: heater_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: preset_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PresetEdit'
+      responses:
+        '200':
+          description: Preset updated successfully
+    delete:
+      summary: Delete temperature preset
+      description: Deletes a temperature preset. DELETE /v1/accounts/{account_id}/heaters/{heater_id}/presets/{preset_id}
+      operationId: deleteTemperaturePreset
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: heater_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: preset_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Preset deleted successfully
+
+  /accounts/{account_id}/heaters/{heater_id}/zones:
+    get:
+      summary: Get all zones
+      description: Retrieves all zones for a heater. GET /v1/accounts/{account_id}/heaters/{heater_id}/zones
+      operationId: getZones
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: heater_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of zones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Zone'
+
+  /accounts/{account_id}/heaters/{heater_id}/zones/{zone_number}:
+    get:
+      summary: Get zone
+      description: Retrieves a specific zone. GET /v1/accounts/{account_id}/heaters/{heater_id}/zones/{zone_number}
+      operationId: getZone
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: heater_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: zone_number
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Zone details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Zone'
+    patch:
+      summary: Update zone settings
+      description: Patches zone settings. PATCH /v1/accounts/{account_id}/heaters/{heater_id}/zones/{zone_number}
+      operationId: patchZoneSettings
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: heater_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: zone_number
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ZoneUpdate'
+      responses:
+        '200':
+          description: Zone settings updated
+
+  /accounts/{account_id}/heaters/{heater_id}/zones/{zone_number}/scheme/week:
+    get:
+      summary: Get week scheme
+      description: Retrieves the week schedule scheme for a zone. GET /v1/accounts/{account_id}/heaters/{heater_id}/zones/{zone_number}/scheme/week
+      operationId: getWeekScheme
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: heater_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: zone_number
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Week scheme details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeekScheme'
+    patch:
+      summary: Update week scheme settings
+      description: Patches week scheme settings for a zone. PATCH /v1/accounts/{account_id}/heaters/{heater_id}/zones/{zone_number}/scheme/week
+      operationId: patchWeekSchemeSettings
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: heater_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: zone_number
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WeekSchemeSettings'
+      responses:
+        '200':
+          description: Week scheme settings updated
+
+  /accounts/{account_id}/heaters/{heater_id}/weather:
+    get:
+      summary: Get weather
+      description: Retrieves weather data for a heater location. GET /v1/accounts/{account_id}/heaters/{heater_id}/weather
+      operationId: getWeather
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: heater_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Weather data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Weather'
+
+  /accounts/{account_id}/heaters/{heater_id}/installer:
+    get:
+      summary: Get installer association
+      description: Retrieves installer association for a heater. GET /v1/accounts/{account_id}/heaters/{heater_id}/installer
+      operationId: getInstallerAssociation
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: heater_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Installer association details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstallerDeviceAssociation'
+    delete:
+      summary: Revoke installer association
+      description: Revokes the installer association for a heater. DELETE /v1/accounts/{account_id}/heaters/{heater_id}/installer
+      operationId: revokeInstallerAssociation
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: heater_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Installer association revoked
+    post:
+      summary: Request installer association
+      description: Requests an installer association for a heater. POST /v1/accounts/{account_id}/heaters/{heater_id}/installer
+      operationId: requestInstallerAssociation
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: heater_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Installer association request submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstallerDeviceAssociation'
+
+  /accounts/{account_id}/gateways/{gateway_id}:
+    get:
+      summary: Get gateway
+      description: Retrieves a specific gateway. GET /v1/accounts/{account_id}/gateways/{gateway_id}
+      operationId: getGateway
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: gateway_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Gateway details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gateway'
+        '404':
+          description: Gateway not found
+
+  /accounts/{account_id}/gateways/{gateway_id}/pairing-status:
+    get:
+      summary: Get pairing action status
+      description: Retrieves the pairing status for a gateway. GET /v1/accounts/{account_id}/gateways/{gateway_id}/pairing-status
+      operationId: getPairingActionStatus
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: gateway_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Pairing status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GatewayPairingStatus'
+    delete:
+      summary: Cancel pairing action
+      description: Cancels an ongoing pairing action for a gateway. DELETE /v1/accounts/{account_id}/gateways/{gateway_id}/pairing-status
+      operationId: cancelPairingAction
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: gateway_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Pairing cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonObject'
+    patch:
+      summary: Patch pairing action serial number
+      description: Updates the serial number for a pairing action. PATCH /v1/accounts/{account_id}/gateways/{gateway_id}/pairing-status
+      operationId: patchPairingActionSerialNumber
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: gateway_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HeaterSerialUpdate'
+      responses:
+        '200':
+          description: Serial number updated
+
+  /eula/{country_code}:
+    get:
+      summary: Get EULA by country
+      description: Retrieves the EULA for a given country. GET /v1/eula/{country_code}
+      operationId: getEulaByCountry
+      security: []
+      parameters:
+        - name: country_code
+          in: path
+          required: true
+          schema:
+            type: string
+            description: ISO country code
+      responses:
+        '200':
+          description: EULA document
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Eula'
+
+  /eula/{country_code}/{language_code}:
+    get:
+      summary: Get EULA by country and language
+      description: Retrieves the EULA for a given country and language. GET /v1/eula/{country_code}/{language_code}
+      operationId: getEulaByCountryLanguage
+      security: []
+      parameters:
+        - name: country_code
+          in: path
+          required: true
+          schema:
+            type: string
+            description: ISO country code
+        - name: language_code
+          in: path
+          required: true
+          schema:
+            type: string
+            description: ISO language code
+      responses:
+        '200':
+          description: EULA document
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Eula'
